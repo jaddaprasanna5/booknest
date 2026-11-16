@@ -1,0 +1,63 @@
+// human code - simple booknest schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role{
+    USER
+    ADMIN
+}
+
+enum BorrowStatus{
+    PENDING
+    APPROVED
+    Rejected
+    RETURNED 
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+
+  borrows   BorrowRequest[]
+}
+
+
+model Book {
+  id              String   @id @default(cuid())
+  title           String
+  author          String
+  description     String   @db.Text
+  category        String
+  totalCopies     Int      @default(1)
+  availableCopies Int      @default(1)
+  createdAt       DateTime @default(now())
+
+  borrows         BorrowRequest[]
+}
+
+
+model BorrowRequest {
+  id          String       @id @default(cuid())
+  userId      String
+  bookId      String
+  status      BorrowStatus @default(PENDING)
+  requestedAt DateTime     @default(now())
+  approvedAt  DateTime?
+
+  user        User         @relation(fields: [userId], references: [id])
+  book        Book         @relation(fields: [bookId], references: [id])
+
+  @@index([userId])
+  @@index([bookId])
+}
+
